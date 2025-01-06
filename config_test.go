@@ -1,22 +1,20 @@
-package splitbatchprocessor
+package delayedbatchprocessor
 
 import (
-	"path"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
-	"go.opentelemetry.io/collector/component/componenttest"
-	"go.opentelemetry.io/collector/config/configtest"
+	"go.opentelemetry.io/collector/component"
+	"go.opentelemetry.io/collector/confmap"
 )
 
-func TestLoadConfig(t *testing.T) {
-	factories, err := componenttest.ExampleComponents()
-	assert.NoError(t, err)
+func TestCreateUnmarshalConfig(t *testing.T) {
+	factory := NewFactory()
+	cfg := factory.CreateDefaultConfig()
+	assert.NoError(t, component.UnmarshalConfig(confmap.New(), cfg))
+	assert.Equal(t, factory.CreateDefaultConfig(), cfg)
+}
 
-	factories.Processors[typeStr] = NewFactory()
+func TestValidate(t *testing.T) {
 
-	cfg, err := configtest.LoadConfigFile(t, path.Join(".", "testdata", "config.yaml"), factories)
-	require.NoError(t, err)
-	require.NotNil(t, cfg)
 }

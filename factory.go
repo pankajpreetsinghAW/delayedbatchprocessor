@@ -1,42 +1,103 @@
-package splitbatchprocessor
+package delayedbatchprocessor
 
 import (
 	"context"
-
 	"go.opentelemetry.io/collector/component"
-	"go.opentelemetry.io/collector/config/configmodels"
 	"go.opentelemetry.io/collector/consumer"
+	"go.opentelemetry.io/collector/processor"
 	"go.opentelemetry.io/collector/processor/processorhelper"
 )
 
 const (
-	// The value of "type" key in configuration.
-	typeStr = "splitbatch"
+	// typeStr is the type of the processor
+	typeStr = "delayedbatchprocessor"
 )
 
-// NewFactory creates a factory for the routing processor.
-func NewFactory() component.ProcessorFactory {
-	return processorhelper.NewFactory(
+// NewFactory creates a processor factory
+func NewFactory() processor.Factory {
+	return processor.NewFactory(
 		typeStr,
 		createDefaultConfig,
-		processorhelper.WithTraces(createTraceProcessor),
+		// Uncomment the processor type that you would like, change the second parameter as you like
+		// component.StabilityLevelUndefined
+		// component.StabilityLevelUnmaintained
+		// component.StabilityLevelDeprecated
+		// component.StabilityLevelDevelopment
+		// component.StabilityLevelAlpha
+		// component.StabilityLevelBeta
+		// component.StabilityLevelStable
+        processor.WithTraces(createTracesProcessor, component.StabilityLevelBeta),
+        
+        processor.WithLogs(createLogsProcessor, component.StabilityLevelAlpha),
+        
+        processor.WithMetrics(createMetricsProcessor, component.StabilityLevelBeta),
+        
 	)
 }
 
-func createDefaultConfig() configmodels.Processor {
-	return &Config{
-		ProcessorSettings: configmodels.ProcessorSettings{
-			TypeVal: typeStr,
-			NameVal: typeStr,
-		},
-	}
+func createDefaultConfig() component.Config {
+
+	return &config{}
 }
+// createTracesProcesor creates a trace processor based on this config.
+func createTracesProcessor(
+	ctx context.Context,
+	set processor.CreateSettings,
+	cfg component.Config,
+	nextConsumer consumer.Traces,
+) (processor.Traces, error) {
 
-func createTraceProcessor(
-	_ context.Context,
-	_ component.ProcessorCreateParams,
-	_ configmodels.Processor,
-	nextConsumer consumer.TraceConsumer) (component.TraceProcessor, error) {
+	return processorhelper.NewTracesProcessor(
+		ctx,
+		set,
+		cfg,
+		nextConsumer,
+		processTraces,
+		//	The parameters below are optional. Uncomment any as you need.
+		//	processorhelper.WithStart(start component.StartFunc),
+		//processorhelper.WithShutdown(shutdown component.ShutdownFunc),
+		//processorhelper.WithCapabilities(capabilities consumer.Capabilities)
+	)
 
-	return newSplitBatch(nextConsumer), nil
+}
+func createLogsProcessor(
+	ctx context.Context,
+	set processor.CreateSettings,
+	cfg component.Config,
+	nextConsumer consumer.Logs,
+) (processor.Logs, error) {
+
+	return processorhelper.NewLogsProcessor(
+		ctx,
+		set,
+		cfg,
+		nextConsumer,
+		processLogs,
+		//	The parameters below are optional. Uncomment any as you need.
+		//	processorhelper.WithStart(start component.StartFunc),
+		//processorhelper.WithShutdown(shutdown component.ShutdownFunc),
+		//processorhelper.WithCapabilities(capabilities consumer.Capabilities)
+	)
+
+}
+// createMetricsProcessor creates a metrics processor based on this config.
+func createMetricsProcessor(
+	ctx context.Context,
+	set processor.CreateSettings,
+	cfg component.Config,
+	nextConsumer consumer.Metrics,
+) (processor.Metrics, error) {
+
+	return processorhelper.NewMetricsProcessor(
+		ctx,
+		set,
+		cfg,
+		nextConsumer,
+		processMetrics,
+		//	The parameters below are optional. Uncomment any as you need.
+		//	processorhelper.WithStart(start component.StartFunc),
+		//processorhelper.WithShutdown(shutdown component.ShutdownFunc),
+		//processorhelper.WithCapabilities(capabilities consumer.Capabilities)
+	)
+
 }
