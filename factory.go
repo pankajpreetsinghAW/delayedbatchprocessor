@@ -2,6 +2,7 @@ package delayedbatchprocessor
 
 import (
 	"context"
+
 	"go.opentelemetry.io/collector/component"
 	"go.opentelemetry.io/collector/consumer"
 	"go.opentelemetry.io/collector/processor"
@@ -16,7 +17,7 @@ const (
 // NewFactory creates a processor factory
 func NewFactory() processor.Factory {
 	return processor.NewFactory(
-		typeStr,
+		component.MustNewType(typeStr),
 		createDefaultConfig,
 		// Uncomment the processor type that you would like, change the second parameter as you like
 		// component.StabilityLevelUndefined
@@ -26,12 +27,11 @@ func NewFactory() processor.Factory {
 		// component.StabilityLevelAlpha
 		// component.StabilityLevelBeta
 		// component.StabilityLevelStable
-        processor.WithTraces(createTracesProcessor, component.StabilityLevelBeta),
-        
-        processor.WithLogs(createLogsProcessor, component.StabilityLevelAlpha),
-        
-        processor.WithMetrics(createMetricsProcessor, component.StabilityLevelBeta),
-        
+		processor.WithTraces(createTracesProcessor, component.StabilityLevelBeta),
+
+		processor.WithLogs(createLogsProcessor, component.StabilityLevelAlpha),
+
+		processor.WithMetrics(createMetricsProcessor, component.StabilityLevelBeta),
 	)
 }
 
@@ -39,15 +39,16 @@ func createDefaultConfig() component.Config {
 
 	return &config{}
 }
+
 // createTracesProcesor creates a trace processor based on this config.
 func createTracesProcessor(
 	ctx context.Context,
-	set processor.CreateSettings,
+	set processor.Settings,
 	cfg component.Config,
 	nextConsumer consumer.Traces,
 ) (processor.Traces, error) {
 
-	return processorhelper.NewTracesProcessor(
+	return processorhelper.NewTraces(
 		ctx,
 		set,
 		cfg,
@@ -62,12 +63,12 @@ func createTracesProcessor(
 }
 func createLogsProcessor(
 	ctx context.Context,
-	set processor.CreateSettings,
+	set processor.Settings,
 	cfg component.Config,
 	nextConsumer consumer.Logs,
 ) (processor.Logs, error) {
 
-	return processorhelper.NewLogsProcessor(
+	return processorhelper.NewLogs(
 		ctx,
 		set,
 		cfg,
@@ -80,15 +81,16 @@ func createLogsProcessor(
 	)
 
 }
+
 // createMetricsProcessor creates a metrics processor based on this config.
 func createMetricsProcessor(
 	ctx context.Context,
-	set processor.CreateSettings,
+	set processor.Settings,
 	cfg component.Config,
 	nextConsumer consumer.Metrics,
 ) (processor.Metrics, error) {
 
-	return processorhelper.NewMetricsProcessor(
+	return processorhelper.NewMetrics(
 		ctx,
 		set,
 		cfg,
